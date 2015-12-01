@@ -66,6 +66,10 @@ foreach ($ipAddresses as $ipAddress) {
 	}
 
 	foreach (explode("\n", $rblContent) as $rbl) {
+		if (empty($fbl)) {
+			continue;
+		}
+		
 		$matches[] = [
 			'#IP' => $ipAddress,
 			'#RBL' => $rbl
