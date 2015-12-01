@@ -22,7 +22,7 @@ if (file_exists($rblFile)) {
 if ($rblRefresh) {
 	$ch = curl_init();
 
-	curl_setopt($ch, CURLOPT_URL, 'http://blog.penumbra.be/files/zabbix/rbl_list.txt');
+	curl_setopt($ch, CURLOPT_URL, 'http://assets.cvo.technology/rbl.txt');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HEADER, false);
 
@@ -66,6 +66,10 @@ foreach ($ipAddresses as $ipAddress) {
 	}
 
 	foreach (explode("\n", $rblContent) as $rbl) {
+		if (empty($rbl)) {
+			continue;
+		}
+		
 		$matches[] = [
 			'#IP' => $ipAddress,
 			'#RBL' => $rbl
