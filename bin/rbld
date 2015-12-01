@@ -71,10 +71,10 @@ foreach ($ipAddresses as $ipAddress) {
 		}
 		
 		$matches[] = [
-			'#IP' => $ipAddress,
-			'#RBL' => $rbl
+			'{#IP}' => $ipAddress,
+			'{#RBL}' => $rbl
 		];
 	}
 }
 
-echo json_encode($matches);
+echo json_encode(['data' => $matches]);
