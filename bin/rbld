@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-$rblFile = __DIR__ . '/rbl.txt';
+$rblFile = '/tmp/rbl.txt';
 $rblRefresh = false;
 $rblContent = null;
 
