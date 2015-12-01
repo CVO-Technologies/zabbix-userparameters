@@ -1,0 +1,76 @@
+#!/usr/bin/env php
+<?php
+
+$rblFile = __DIR__ . '/rbl.txt';
+$rblRefresh = false;
+$rblContent = null;
+
+if (file_exists($rblFile)) {
+	$rblRefreshTime = filemtime($rblFile);
+
+	if ($rblRefreshTime === false) {
+		$rblRefresh = true;
+	} else {
+		if ($rblRefreshTime <= strtotime('-1 day')) {
+			$rblRefresh = true;
+		}
+	}
+} else {
+	$rblRefresh = true;
+}
+
+if ($rblRefresh) {
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, 'http://blog.penumbra.be/files/zabbix/rbl_list.txt');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HEADER, false);
+
+	$rblContent = curl_exec($ch);
+
+	if ($rblContent !== false) {
+		file_put_contents($rblFile, $rblContent);
+	} else {
+		echo 'Unable to refresh RBL list' . PHP_EOL;
+		exit(404);
+	}
+
+	curl_close($ch);
+}
+
+if ($rblContent == null) {
+	$rblContent = file_get_contents($rblFile);
+
+	if ($rblContent === false || empty($rblContent)) {
+		echo 'Unable to get RBL content' . PHP_EOL;
+		exit(404);
+	}
+}
+
+$ipAddresses = [];
+
+exec('ifconfig | grep inet | sed \'s/\:/ /\' | awk \'{print $3}\'', $ipAddresses);
+
+if (empty($ipAddresses)) {
+	echo 'No IP adresses found on server' . PHP_EOL;
+	exit(404);
+}
+
+$matches = [];
+
+foreach ($ipAddresses as $ipAddress) {
+	$ipAddress = explode('/', $ipAddress)[0];
+
+	if (!filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE| FILTER_FLAG_NO_RES_RANGE)) {
+		continue;	
+	}
+
+	foreach (explode("\n", $rblContent) as $rbl) {
+		$matches[] = [
+			'#IP' => $ipAddress,
+			'#RBL' => $rbl
+		];
+	}
+}
+
+echo json_encode($matches);
